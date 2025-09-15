@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../utils/constants.dart';
+import '../utils/helpers.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,64 +13,28 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final String _baseUrl = 'http://104.251.211.91:3666';
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  Future<void> _login() async {
-    final username = _usernameController.text;
-    final password = _passwordController.text;
-
-    final url = Uri.parse('$_baseUrl/auth/driver-login');
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        final String? token = data['token'];
-        
-        if (token != null) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('jwt_token', token);
-          
-          if(mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen(token: token)),
-            );
-          }
-        } else {
-          _showErrorDialog('Erro de login: Token de autenticação não fornecido na resposta.');
-        }
-      } else {
-        final Map<String, dynamic> errorData = jsonDecode(response.body);
-        _showErrorDialog(errorData['error'] ?? 'Falha na autenticação.');
-      }
-    } catch (e) {
-      _showErrorDialog('Erro de conexão: ${e.toString()}');
-    }
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Erro de Login'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.login(
+      _usernameController.text.trim(),
+      _passwordController.text,
     );
+    
+    // A navegação será gerenciada automaticamente pelo AppInitializer
+    // baseado no estado de autenticação
   }
 
   @override
@@ -78,41 +43,72 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text('Login do Motorista'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ADICIONADO: O widget Image para a sua logo
-            Image.asset(
-              'assets/imagens/logo.png', // O caminho para o seu arquivo de logo
-              width: 150, // Largura desejada para a logo
-              height: 150, // Altura desejada para a logo
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Nome de Usuário',
-                border: OutlineInputBorder(),
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          // Show error message if exists
+          if (authProvider.errorMessage != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Helpers.showErrorDialog(context, authProvider.errorMessage!);
+              authProvider.clearError();
+            });
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(Constants.defaultPadding),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/imagens/logo.png',
+                    width: 150,
+                    height: 150,
+                  ),
+                  const SizedBox(height: Constants.largePadding),
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome de Usuário',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty 
+                        ? 'Nome de usuário é obrigatório' 
+                        : null,
+                    enabled: !authProvider.isLoading,
+                  ),
+                  const SizedBox(height: Constants.defaultPadding),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Senha',
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) => value == null || value.isEmpty 
+                        ? 'Senha é obrigatória' 
+                        : null,
+                    enabled: !authProvider.isLoading,
+                  ),
+                  const SizedBox(height: Constants.largePadding),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: authProvider.isLoading ? null : _login,
+                      child: authProvider.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Entrar'),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Senha',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _login,
-              child: const Text('Entrar'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
