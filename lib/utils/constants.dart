@@ -45,3 +45,4 @@ class Constants {
   static const String successTripFinalized = 'Viagem finalizada com sucesso!';
   static const String successImageUpload = 'Imagem enviada com sucesso!';
 }
+

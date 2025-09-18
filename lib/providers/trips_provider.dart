@@ -72,7 +72,7 @@ class TripsProvider extends ChangeNotifier {
     }
   }
 
-  // Add cost
+  // Add cost (for trip-related costs)
   Future<bool> addCost(Cost cost) async {
     try {
       await _apiService.addCost(cost);
@@ -81,6 +81,19 @@ class TripsProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _setError('Erro ao adicionar custo: $e');
+      return false;
+    }
+  }
+
+  // Add standalone cost (custos avulsos)
+  Future<bool> addStandaloneCost(Cost cost) async {
+    try {
+      await _apiService.addStandaloneCost(cost);
+      // For standalone costs, we don't need to refresh trips
+      // but we could refresh if needed in the future
+      return true;
+    } catch (e) {
+      _setError('Erro ao adicionar custo avulso: $e');
       return false;
     }
   }

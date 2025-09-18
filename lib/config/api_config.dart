@@ -37,6 +37,7 @@ class ApiConfig {
     
     // Costs
     'costs': '/app/motorista/custos',
+    'standaloneCosts': '/app/motorista/custos-avulsos',
   };
   
   // Error codes mapping
@@ -80,3 +81,4 @@ class ApiConfig {
     return ['jpg', 'jpeg', 'png'].contains(extension);
   }
 }
+

@@ -119,3 +119,4 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 }
+

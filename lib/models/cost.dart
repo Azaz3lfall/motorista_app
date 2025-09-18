@@ -28,6 +28,7 @@ class Cost {
   final String descricao;
   final double valor;
   final int vehicleId;
+  final String? fotoComprovante; // Nova propriedade para imagem
 
   Cost({
     this.id,
@@ -36,6 +37,7 @@ class Cost {
     required this.descricao,
     required this.valor,
     required this.vehicleId,
+    this.fotoComprovante, // Nova propriedade opcional
   });
 
   factory Cost.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class Cost {
       descricao: json['descricao'] ?? '',
       valor: (json['valor'] as num).toDouble(),
       vehicleId: json['vehicle_id'],
+      fotoComprovante: json['foto_comprovante'],
     );
   }
 
@@ -57,6 +60,7 @@ class Cost {
       'descricao': descricao,
       'valor': valor,
       'vehicle_id': vehicleId,
+      if (fotoComprovante != null) 'foto_path': fotoComprovante,
     };
   }
 

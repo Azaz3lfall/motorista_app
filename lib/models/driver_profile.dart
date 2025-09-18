@@ -47,3 +47,4 @@ class DriverProfile {
   @override
   int get hashCode => id.hashCode ^ name.hashCode ^ associatedVehicles.length.hashCode;
 }
+

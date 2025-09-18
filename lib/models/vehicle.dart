@@ -32,3 +32,4 @@ class Vehicle {
   @override
   int get hashCode => id.hashCode ^ name.hashCode;
 }
+

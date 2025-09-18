@@ -98,3 +98,4 @@ class LoadingOverlay extends StatelessWidget {
     );
   }
 }
+

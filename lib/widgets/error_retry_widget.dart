@@ -105,3 +105,4 @@ class ErrorRetryWidget extends StatelessWidget {
     );
   }
 }
+

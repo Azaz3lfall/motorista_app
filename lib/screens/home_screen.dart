@@ -72,6 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
     await tripsProvider.addCost(cost);
   }
 
+  Future<void> _handleStandaloneCostAdded(Cost cost) async {
+    final tripsProvider = Provider.of<TripsProvider>(context, listen: false);
+    await tripsProvider.addStandaloneCost(cost);
+  }
+
   Future<void> _handleTripFinalized(int tripId, double distance) async {
     final tripsProvider = Provider.of<TripsProvider>(context, listen: false);
     await tripsProvider.finalizeTrip(tripId, distance);
@@ -136,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => StandaloneCostDialog(
         vehicles: driverProvider.driverProfile!.associatedVehicles,
-        onCostAdded: _handleCostAdded,
+        onCostAdded: _handleStandaloneCostAdded,
       ),
     );
   }
@@ -238,19 +243,61 @@ class _HomeScreenState extends State<HomeScreen> {
             );
         },
       ),
-      floatingActionButton: Consumer<DriverProvider>(
+      bottomNavigationBar: Consumer<DriverProvider>(
         builder: (context, driverProvider, child) {
-          // Só mostra o botão se o motorista tem veículos associados
+          // Só mostra os botões se o motorista tem veículos associados
           if (driverProvider.driverProfile == null || 
               driverProvider.driverProfile!.associatedVehicles.isEmpty) {
             return const SizedBox.shrink();
           }
           
-          return FloatingActionButton.extended(
-            onPressed: _showStandaloneCostDialog,
-            icon: const Icon(Icons.receipt_long),
-            label: const Text('Custo Avulso'),
-            tooltip: 'Adicionar custo avulso (almoço, pedágio, etc.)',
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  // Botão de Abastecimento Avulso
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showRefuelingDialog(),
+                      icon: const Icon(Icons.local_gas_station),
+                      label: const Text('Abastecimento'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Botão de Custo Avulso
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _showStandaloneCostDialog,
+                      icon: const Icon(Icons.receipt_long),
+                      label: const Text('Custo Avulso'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
         },
       ),

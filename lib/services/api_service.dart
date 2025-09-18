@@ -153,24 +153,68 @@ class ApiService {
   Future<void> addCost(Cost cost) async {
     final url = Uri.parse(ApiConfig.buildUrl('costs'));
     
+    print('💰 Enviando custo de viagem para o backend...');
+    print('🌐 URL: $url');
+    print('📋 Dados: ${cost.toJson()}');
+    
     final response = await http.post(
       url,
       headers: _headers,
       body: jsonEncode(cost.toJson()),
     );
 
+    print('📡 Status da resposta: ${response.statusCode}');
+    print('📄 Corpo da resposta: ${response.body}');
+
     await _handleResponse(response);
+    print('✅ Custo de viagem adicionado com sucesso!');
+  }
+
+  // Standalone Costs (custos avulsos)
+  Future<void> addStandaloneCost(Cost cost) async {
+    final url = Uri.parse(ApiConfig.buildUrl('standaloneCosts'));
+    
+    // Para custos avulsos, não enviamos o tripId
+    final costData = {
+      'vehicle_id': cost.vehicleId,
+      'tipo_custo': cost.tipoCusto.value,
+      'descricao': cost.descricao,
+      'valor': cost.valor,
+      if (cost.fotoComprovante != null) 'foto_path': cost.fotoComprovante,
+    };
+    
+    print('💰 Enviando custo avulso para o backend...');
+    print('🌐 URL: $url');
+    print('📋 Dados: $costData');
+    
+    final response = await http.post(
+      url,
+      headers: _headers,
+      body: jsonEncode(costData),
+    );
+
+    print('📡 Status da resposta: ${response.statusCode}');
+    print('📄 Corpo da resposta: ${response.body}');
+
+    await _handleResponse(response);
+    print('✅ Custo avulso adicionado com sucesso!');
   }
 
   // File Upload
   Future<String> uploadImage(File imageFile) async {
     final url = Uri.parse(ApiConfig.buildUrl('upload'));
     
+    print('📸 Iniciando upload de imagem...');
+    print('📁 Caminho da imagem: ${imageFile.path}');
+    print('🌐 URL de upload: $url');
+    
     String extension = p.extension(imageFile.path).toLowerCase();
     MediaType mediaType = MediaType(
       'image',
       extension.isNotEmpty ? extension.substring(1) : 'jpeg',
     );
+
+    print('📋 Tipo de mídia: ${mediaType.type}/${mediaType.subtype}');
 
     var request = http.MultipartRequest('POST', url)
       ..headers['Authorization'] = 'Bearer $_token'
@@ -180,7 +224,10 @@ class ApiService {
         contentType: mediaType,
       ));
 
+    print('🚀 Enviando requisição de upload...');
     var response = await request.send();
+
+    print('📡 Status da resposta: ${response.statusCode}');
 
     if (response.statusCode == 401) {
       clearToken();
@@ -189,9 +236,14 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final respStr = await response.stream.bytesToString();
+      print('📄 Resposta do upload: $respStr');
       final data = jsonDecode(respStr);
-      return data['filePath'];
+      final filePath = data['filePath'];
+      print('✅ Upload bem-sucedido! Caminho: $filePath');
+      return filePath;
     } else {
+      final errorBody = await response.stream.bytesToString();
+      print('❌ Erro no upload: $errorBody');
       throw ApiException('Erro no upload da imagem: ${response.statusCode}', response.statusCode);
     }
   }

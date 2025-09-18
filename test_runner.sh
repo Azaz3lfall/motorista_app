@@ -46,3 +46,4 @@ fi
 
 echo ""
 echo "🎉 Processo de teste finalizado!"
+

@@ -97,3 +97,4 @@ class _FinalizeTripDialogState extends State<FinalizeTripDialog> {
     );
   }
 }
+

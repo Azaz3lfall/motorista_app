@@ -3,13 +3,12 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import '../utils/helpers.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {

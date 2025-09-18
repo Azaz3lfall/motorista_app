@@ -66,3 +66,4 @@ class Refueling {
     return 'Refueling(id: $id, vehicleId: $vehicleId, odometer: $odometer, liters: $litersFilled, cost: $totalCost)';
   }
 }
+

@@ -52,3 +52,4 @@ class Trip {
   @override
   int get hashCode => id.hashCode ^ startCity.hashCode ^ endCity.hashCode ^ startDate.hashCode ^ status.hashCode;
 }
+
